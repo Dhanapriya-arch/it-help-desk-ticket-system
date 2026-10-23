@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IT Help Desk Ticket System</title>
+<style>
+:root{--navy:#14213d;--blue:#2563eb;--bg:#f4f7fb;--text:#172033;--muted:#667085;--border:#e2e8f0}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+header{background:var(--navy);color:#fff;padding:24px clamp(16px,4vw,48px)}header h1{margin:0 0 7px;font-size:clamp(22px,3vw,30px)}header p{margin:0;color:#dbeafe}
+main{max-width:1400px;margin:24px auto;padding:0 16px 32px}.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.stat,.panel{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 3px 12px #0f172a08}.stat{padding:16px}.stat span{color:var(--muted);font-size:13px}.stat strong{display:block;margin-top:8px;font-size:27px}
+.layout{display:grid;grid-template-columns:320px minmax(0,1fr);gap:18px;align-items:start}.panel{padding:20px}h2{font-size:18px;margin:0 0 16px}
+label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:10px 11px;font:inherit;background:#fff}textarea{min-height:75px;resize:vertical}
+button{border:0;border-radius:8px;padding:10px 13px;font-weight:700;cursor:pointer}.primary{background:var(--blue);color:#fff;width:100%;margin-top:15px}.secondary{background:#eaf0ff;color:#1d4ed8}.danger{background:#fee2e2;color:#991b1b}
+.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px}.toolbar input{flex:1;min-width:180px}.toolbar select{width:auto;min-width:140px}
+.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:11px 9px;border-bottom:1px solid var(--border);vertical-align:top}th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.pill{display:inline-block;padding:5px 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}.Open{background:#fff3d6;color:#8a5300}.In-Progress{background:#dbeafe;color:#1d4ed8}.Resolved{background:#dcfce7;color:#166534}
+.small-select{min-width:118px;padding:6px;font-size:12px}.row-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.mini{font-size:11px;padding:6px 8px}.hint{color:var(--muted);font-size:12px;line-height:1.5}.empty{padding:26px;text-align:center;color:var(--muted)}.section-title{margin-top:22px}.notes{white-space:pre-wrap;max-width:240px;overflow-wrap:anywhere}.footer{text-align:center;padding:0 16px 24px;color:var(--muted);font-size:12px}
+@media(max-width:1050px){.layout{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:520px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.panel{padding:14px}.stat{padding:13px}.stat strong{font-size:23px}}
+</style>
+</head>
+<body>
+<header><h1>IT Help Desk Ticket System</h1><p>A portfolio demo for tracking, troubleshooting, and resolving employee IT issues.</p></header>
+<main>
+<section class="stats" aria-label="Ticket summary">
+<div class="stat"><span>Total tickets</span><strong id="totalCount">0</strong></div>
+<div class="stat"><span>Open</span><strong id="openCount">0</strong></div>
+<div class="stat"><span>In progress</span><strong id="progressCount">0</strong></div>
+<div class="stat"><span>Resolved</span><strong id="resolvedCount">0</strong></div>
+<div class="stat"><span>High priority</span><strong id="highCount">0</strong></div>
+</section>
+<div class="layout">
+<section class="panel">
+<h2 id="formHeading">Create a support ticket</h2>
+<form id="ticketForm">
+<label for="requester">Requester name *</label><input id="requester" required maxlength="60" placeholder="e.g. Priya Kumar">
+<label for="category">Issue category *</label><select id="category"><option>Hardware</option><option>Software</option><option>Network / Wi-Fi</option><option>Account / Login</option><option>Printer</option><option>Other</option></select>
+<label for="priority">Priority *</label><select id="priority"><option>Low</option><option selected>Medium</option><option>High</option></select>
+<label for="assignee">Assigned technician</label><input id="assignee" maxlength="60" placeholder="e.g. IT Support Team">
+<label for="issue">Issue description *</label><textarea id="issue" required maxlength="700" placeholder="What problem did the user report?"></textarea>
+<label for="troubleshooting">Troubleshooting notes</label><textarea id="troubleshooting" maxlength="1200" placeholder="Checks performed, error messages, steps taken..."></textarea>
+<label for="resolution">Resolution / next steps</label><textarea id="resolution" maxlength="1200" placeholder="How was it fixed? If not fixed, what happens next?"></textarea>
+<button class="primary" id="submitButton" type="submit">+ Create ticket</button>
+<button class="secondary" id="cancelEdit" type="button" style="display:none;width:100%;margin-top:8px">Cancel edit</button>
+</form>
+<p class="hint">Demo only: records are saved in this browser. Do not enter real personal, password, or confidential company information.</p>
+</section>
+<section class="panel">
+<h2>Support tickets</h2>
+<div class="toolbar">
+<input id="search" placeholder="Search ID, requester, issue, technician..." aria-label="Search tickets">
+<select id="statusFilter" aria-label="Filter by status"><option value="All">All statuses</option><option>Open</option><option>In Progress</option><option>Resolved</option></select>
+<select id="priorityFilter" aria-label="Filter by priority"><option value="All">All priorities</option><option>High</option><option>Medium</option><option>Low</option></select>
+<button id="exportCsv" class="secondary" type="button">Export CSV</button><button id="resetDemo" class="danger" type="button">Reset demo</button>
+</div>
+<div class="table-wrap"><table><thead><tr><th>Ticket / dates</th><th>Requester / issue</th><th>Owner / priority</th><th>Status / actions</th></tr></thead><tbody id="ticketRows"></tbody></table><div id="emptyState" class="empty" hidden>No tickets found. Create a ticket to get started.</div></div>
+<p class="hint">Change a ticket's status in the dropdown. Use Edit to update its details. Resolution date is recorded when a ticket is marked Resolved.</p>
+</section>
+</div>
+<section class="panel section-title">
+<h2>How to use this demo</h2>
+<p>1. Create a ticket. 2. Assign a technician. 3. Add troubleshooting notes and a resolution. 4. Update the status. 5. Search or filter tickets. 6. Export a CSV file to open ticket data in Excel.</p>
+<p class="hint">Sample tickets are fictional. This project has no server, authentication, database, email notifications, or role-based access controls.</p>
+</section>
+</main>
+<div class="footer">Portfolio demonstration · HTML, CSS, JavaScript · Local browser storage only</div>
+<script>
+const STORAGE_KEY = "itHelpDeskTicketsPro_v1";
+const starterTickets = [
+ {id:"HD-1001",requester:"Arun",category:"Network / Wi-Fi",priority:"High",assignee:"IT Support Team",issue:"Laptop cannot connect to office Wi-Fi.",troubleshooting:"Checked Wi-Fi is enabled; restarted adapter; verified airplane mode is off.",resolution:"Pending: check router/access point and confirm whether other users are affected.",status:"Open",createdAt:"2026-10-15T09:15:00",resolvedAt:""},
+ {id:"HD-1002",requester:"Meena",category:"Software",priority:"Medium",assignee:"Kavin",issue:"Office application closes unexpectedly.",troubleshooting:"Restarted the application and checked for available updates.",resolution:"Reproduced issue; update and retest with requester.",status:"In Progress",createdAt:"2026-10-15T10:20:00",resolvedAt:""},
+ {id:"HD-1003",requester:"Kavin",category:"Printer",priority:"Low",assignee:"Priya",issue:"Printer queue was stuck.",troubleshooting:"Checked printer connection and cleared the stalled queue.",resolution:"Printed a test page successfully and confirmed with requester.",status:"Resolved",createdAt:"2026-10-14T14:00:00",resolvedAt:"2026-10-14T14:25:00"}
+];
+let tickets = loadTickets();
+let editingId = null;
+function loadTickets(){try{const saved=localStorage.getItem(STORAGE_KEY);return saved?JSON.parse(saved):starterTickets.map(t=>({...t}));}catch{return starterTickets.map(t=>({...t}));}}
+function saveTickets(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(tickets));}catch{alert("Browser storage is unavailable. Changes may not persist after refresh.");}}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function formatDate(v){if(!v)return "—";const d=new Date(v);return Number.isNaN(d.getTime())?esc(v):d.toLocaleString([], {dateStyle:"medium",timeStyle:"short"});}
+function updateStats(){document.getElementById("totalCount").textContent=tickets.length;document.getElementById("openCount").textContent=tickets.filter(t=>t.status==="Open").length;document.getElementById("progressCount").textContent=tickets.filter(t=>t.status==="In Progress").length;document.getElementById("resolvedCount").textContent=tickets.filter(t=>t.status==="Resolved").length;document.getElementById("highCount").textContent=tickets.filter(t=>t.priority==="High"&&t.status!=="Resolved").length;}
+function render(){
+ updateStats();const q=document.getElementById("search").value.trim().toLowerCase(),sf=document.getElementById("statusFilter").value,pf=document.getElementById("priorityFilter").value;
+ const filtered=tickets.filter(t=>[t.id,t.requester,t.category,t.issue,t.assignee,t.troubleshooting,t.resolution].join(" ").toLowerCase().includes(q)&&(sf==="All"||t.status===sf)&&(pf==="All"||t.priority===pf));
+ const tbody=document.getElementById("ticketRows");
+ tbody.innerHTML=filtered.map(t=>`<tr>
+ <td><strong>${esc(t.id)}</strong><br><small>Created: ${formatDate(t.createdAt)}</small><br><small>Resolved: ${formatDate(t.resolvedAt)}</small></td>
+ <td><strong>${esc(t.requester)}</strong><br><small>${esc(t.category)}</small><p>${esc(t.issue)}</p><details><summary>Support notes</summary><p><strong>Troubleshooting</strong></p><div class="notes">${esc(t.troubleshooting||"No notes added.")}</div><p><strong>Resolution / next steps</strong></p><div class="notes">${esc(t.resolution||"Not recorded.")}</div></details></td>
+ <td>${esc(t.assignee||"Unassigned")}<br><span class="pill ${t.priority==="High"?"Open":t.priority==="Medium"?"In-Progress":"Resolved"}">${esc(t.priority)}</span></td>
+ <td><span class="pill ${t.status.replace(" ","-")}">${esc(t.status)}</span><br><select class="small-select status-change" data-id="${esc(t.id)}" aria-label="Change status for ${esc(t.id)}">${["Open","In Progress","Resolved"].map(s=>`<option ${t.status===s?"selected":""}>${s}</option>`).join("")}</select>
+ <div class="row-actions"><button class="secondary mini edit-btn" data-id="${esc(t.id)}" type="button">Edit</button></div></td></tr>`).join("");
+ document.getElementById("emptyState").hidden=filtered.length!==0;
+ tbody.querySelectorAll(".status-change").forEach(el=>el.addEventListener("change",e=>{const t=tickets.find(x=>x.id===e.target.dataset.id);if(!t)return;t.status=e.target.value;t.resolvedAt=t.status==="Resolved"?(t.resolvedAt||new Date().toISOString()):"";saveTickets();render();}));
+ tbody.querySelectorAll(".edit-btn").forEach(el=>el.addEventListener("click",()=>startEdit(el.dataset.id)));
+}
+function startEdit(id){const t=tickets.find(x=>x.id===id);if(!t)return;editingId=id;for(const key of ["requester","category","priority","assignee","issue","troubleshooting","resolution"])document.getElementById(key).value=t[key]||"";document.getElementById("formHeading").textContent="Edit "+id;document.getElementById("submitButton").textContent="Save changes";document.getElementById("cancelEdit").style.display="block";document.getElementById("requester").focus();window.scrollTo({top:0,behavior:"smooth"});}
+function resetForm(){editingId=null;document.getElementById("ticketForm").reset();document.getElementById("priority").value="Medium";document.getElementById("formHeading").textContent="Create a support ticket";document.getElementById("submitButton").textContent="+ Create ticket";document.getElementById("cancelEdit").style.display="none";}
+document.getElementById("ticketForm").addEventListener("submit",e=>{e.preventDefault();const data={requester:document.getElementById("requester").value.trim(),category:document.getElementById("category").value,priority:document.getElementById("priority").value,assignee:document.getElementById("assignee").value.trim(),issue:document.getElementById("issue").value.trim(),troubleshooting:document.getElementById("troubleshooting").value.trim(),resolution:document.getElementById("resolution").value.trim()};
+ if(editingId){const t=tickets.find(x=>x.id===editingId);if(t)Object.assign(t,data);}else{const n=tickets.reduce((m,t)=>Math.max(m,Number(t.id.replace("HD-",""))||1000),1000)+1;tickets.unshift({id:"HD-"+n,...data,status:"Open",createdAt:new Date().toISOString(),resolvedAt:""});}
+ saveTickets();resetForm();render();});
+document.getElementById("cancelEdit").addEventListener("click",resetForm);
+document.getElementById("search").addEventListener("input",render);document.getElementById("statusFilter").addEventListener("change",render);document.getElementById("priorityFilter").addEventListener("change",render);
+document.getElementById("exportCsv").addEventListener("click",()=>{const headers=["Ticket ID","Requester","Category","Priority","Assigned Technician","Issue","Troubleshooting Notes","Resolution / Next Steps","Status","Created At","Resolved At"];const rows=tickets.map(t=>[t.id,t.requester,t.category,t.priority,t.assignee,t.issue,t.troubleshooting,t.resolution,t.status,t.createdAt,t.resolvedAt]);const csv=[headers,...rows].map(row=>row.map(v=>{let s=String(v??"");if(/^[=+\-@\t\r]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';}).join(",")).join("\r\n");const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="it-help-desk-tickets.csv";a.click();URL.revokeObjectURL(url);});
+document.getElementById("resetDemo").addEventListener("click",()=>{if(confirm("Reset all tickets to the original fictional demo examples?")){tickets=starterTickets.map(t=>({...t}));saveTickets();resetForm();render();}});
+render();
+</script>
+</body></html>
